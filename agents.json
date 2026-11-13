@@ -1,0 +1,45 @@
+{
+  "_help": "Default team. Copy to ~/.ai-workspace/agents.json (run: ai-config) and edit there. role: lead | executor | reviewer. logs: claude | codex | null (null = launched in a pane but not shown in the office). dir: optional log folder, e.g. a second Claude account with CLAUDE_CONFIG_DIR.",
+  "port": 4777,
+  "hours": 8,
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude",
+      "command": "claude",
+      "role": "lead",
+      "color": "#e2805a",
+      "logs": "claude",
+      "enabled": true
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "command": "codex",
+      "role": "executor",
+      "color": "#39c494",
+      "logs": "codex",
+      "enabled": true
+    },
+    {
+      "id": "claude-work",
+      "name": "Claude (trabajo)",
+      "command": "claude",
+      "env": { "CLAUDE_CONFIG_DIR": "~/.claude-work" },
+      "role": "reviewer",
+      "color": "#c3a0ff",
+      "logs": "claude",
+      "dir": "~/.claude-work/projects",
+      "enabled": false
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "command": "gemini",
+      "role": "reviewer",
+      "color": "#7ea6f6",
+      "logs": null,
+      "enabled": false
+    }
+  ]
+}
