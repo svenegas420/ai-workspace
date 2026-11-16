@@ -1,9 +1,12 @@
 (() => {
-  const panel = document.querySelector('#workspacePanel');
+  // Each portal module (docs, graph, import, chat) renders into its own window.
+  const WM = window.Win98WM, PORTAL_WINDOWS = ['docs', 'graph', 'chat', 'import'];
+  const host = id => WM.host(id);
+  const windowOf = el => el?.closest?.('.w98-app')?.dataset.window || '';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let ws, view = '', discovery, library, noteId = '', docFilter = '', noteSearch = '', conversations = [], currentChat = null, newChat = false, preferredProject = '', preferredTask = '', stream = null, pendingText = '', sending = false, poll = null;
+  let ws, discovery, library, noteId = '', docFilter = '', graphFilter = '', noteSearch = '', conversations = [], currentChat = null, newChat = false, preferredProject = '', preferredTask = '', stream = null, pendingText = '', sending = false, poll = null;
   const drafts = new Map();
-  let preferredAgent = '', contactAgent = '', maximized = false, contactSearch = '';
+  let preferredAgent = '', contactAgent = '', contactSearch = '';
   const btn = (action, text, extra = '', primary = false) => `<button type="button" class="ws-button${primary ? ' primary' : ''}" data-portal="${action}" ${extra}>${text}</button>`;
   const opts = (values, chosen, blank = '') => (blank ? `<option value="">${esc(blank)}</option>` : '') + values.map(([id, label]) => `<option value="${esc(id)}" ${id === chosen ? 'selected' : ''}>${esc(label)}</option>`).join('');
   const header = (title, text, actions = '') => `<div class="ws-heading"><div><h2>${title}</h2><p>${text}</p></div><div class="ws-actions">${actions}</div></div>`;
@@ -44,18 +47,18 @@
     }).join('');
   }
   function importView() {
-    panel.innerHTML = header('Importar proyectos de htdocs', `${discovery.projects.length} carpetas encontradas en ${esc(discovery.root)}. Selecciona las que quieras guardar y asígnales una categoría.`, btn('projects', '← Proyectos') + btn('refresh-import', 'Actualizar lista')) +
+    host('import').innerHTML = header('Importar proyectos de htdocs', `${discovery.projects.length} carpetas encontradas en ${esc(discovery.root)}. Selecciona las que quieras guardar y asígnales una categoría.`, btn('projects', '← Proyectos') + btn('refresh-import', 'Actualizar lista')) +
       '<p>Los respaldos y las carpetas de XAMPP están señalados para que puedas distinguirlos.</p>' +
       `<form id="importForm"><div class="portal-import-list">${discovery.projects.map(p => `<div class="portal-import-row" data-imported="${p.imported}" data-candidate="${p.key}"><input type="checkbox" name="selected" value="${p.key}" aria-label="Seleccionar ${esc(p.name)}" ${p.imported ? 'disabled' : ''}><div><b>${esc(p.name)}</b><span class="ws-meta">${p.imported ? 'Ya está en la oficina' : p.infrastructure ? 'Carpeta de XAMPP' : p.backup ? 'Posible respaldo' : p.markers.length ? esc(p.markers.filter(x => x !== '.git').join(' · ')) || 'Repositorio Git' : 'Carpeta sin identificación de stack'}</span></div><label>Categoría<select name="category-${p.key}" ${p.imported ? 'disabled' : ''}>${opts([['personal', 'Personal'], ['work', 'Trabajo']], '', 'Seleccionar…')}</select></label></div>`).join('')}</div><div class="portal-import-bar"><button class="ws-button primary">Agregar seleccionados a la oficina</button><span class="ws-meta">La clasificación la eliges tú. No se modifica ningún archivo de htdocs.</span></div></form>`;
   }
-  function filteredNotes() { return library.notes.filter(n => (!docFilter || n.projectId === docFilter || n.category === docFilter) && (!noteSearch || (n.title + ' ' + n.id + ' ' + n.content).toLowerCase().includes(noteSearch.toLowerCase()))); }
+  function filteredNotes(filter = docFilter, search = noteSearch) { return library.notes.filter(n => (!filter || n.projectId === filter || n.category === filter) && (!search || (n.title + ' ' + n.id + ' ' + n.content).toLowerCase().includes(search.toLowerCase()))); }
   function noteList() {
     return filteredNotes().map(n => `<button type="button" class="portal-note" data-portal="note" data-id="${esc(n.id)}" aria-current="${n.id === noteId}"><b>${esc(n.title).slice(0, 90)}</b><small>${esc(n.id)}</small></button>`).join('') || '<p>No hay notas con este filtro.</p>';
   }
   function docsView() {
     if (!library.notes.some(n => n.id === noteId)) noteId = filteredNotes()[0]?.id || '';
     const note = library.notes.find(n => n.id === noteId);
-    panel.innerHTML = header('Documentación de Obsidian', 'Lee tus notas y sigue sus enlaces sin salir de la oficina.', btn('refresh-notes', 'Actualizar desde la bóveda') + btn('graph-view', 'Ver red neuronal')) +
+    host('docs').innerHTML = header('Documentación de Obsidian', 'Lee tus notas y sigue sus enlaces sin salir de la oficina.', btn('refresh-notes', 'Actualizar desde la bóveda') + btn('graph-view', 'Ver red neuronal')) +
       `<div class="portal-layout"><aside class="portal-sidebar"><h3>Notas de la bóveda</h3><label>Proyecto<select id="docFilter">${opts([['office', 'Oficina'], ...ws.projects.map(p => [p.id, p.name])], docFilter, 'Toda la bóveda')}</select></label><label class="ws-section">Buscar<input id="noteSearch" type="search" value="${esc(noteSearch)}" placeholder="Título o contenido"></label><div id="noteList">${noteList()}</div></aside><article class="portal-reader"><div class="ws-meta">${esc(note?.id || '')}</div><div class="portal-markdown">${note ? markdown(note.content, note.id) : '<p>No hay notas todavía.</p>'}</div>${note ? `<a class="ws-link ws-section" href="obsidian://open?path=${encodeURIComponent(library.vaultPath + '/' + note.id)}">Abrir esta nota en Obsidian ↗</a>` : ''}</article></div>`;
   }
   // ---------- Knowledge graph ("Red neuronal") ----------
@@ -64,12 +67,12 @@
   const GRAPH_FONT = '"Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif';
   let graph = null, graphObserver = null;
   function graphView() {
-    const visible = filteredNotes(), ids = new Set(visible.map(n => n.id));
+    const visible = filteredNotes(graphFilter, ''), ids = new Set(visible.map(n => n.id));
     const links = library.links.filter(l => ids.has(l.source) && ids.has(l.target));
     if (!ids.has(noteId)) noteId = '';
     const counts = visible.reduce((acc, n) => { acc[n.category] = (acc[n.category] || 0) + 1; return acc; }, {});
-    panel.innerHTML = header('Red neuronal de tu oficina', 'Cada punto es una nota de Obsidian y cada línea un enlace [[nota]] entre ellas.', btn('refresh-notes', 'Actualizar grafo') + btn('docs-view', 'Leer documentación')) +
-      `<div class="graph-toolbar"><label>Mostrar<select id="graphFilter">${opts([['personal', 'Personales'], ['work', 'Trabajo'], ['office', 'Oficina'], ...ws.projects.map(p => [p.id, p.name])], docFilter, 'Toda la bóveda')}</select></label><label>Buscar una nota<select id="graphNode">${opts(visible.map(n => [n.id, n.title]), noteId, 'Elige una nota…')}</select></label><span class="graph-count"><b>${visible.length}</b> notas · <b>${links.length}</b> conexiones</span></div>` +
+    host('graph').innerHTML = header('Red neuronal de tu oficina', 'Cada punto es una nota de Obsidian y cada línea un enlace [[nota]] entre ellas.', btn('refresh-notes', 'Actualizar grafo') + btn('docs-view', 'Leer documentación')) +
+      `<div class="graph-toolbar"><label>Mostrar<select id="graphFilter">${opts([['personal', 'Personales'], ['work', 'Trabajo'], ['office', 'Oficina'], ...ws.projects.map(p => [p.id, p.name])], graphFilter, 'Toda la bóveda')}</select></label><label>Buscar una nota<select id="graphNode">${opts(visible.map(n => [n.id, n.title]), noteId, 'Elige una nota…')}</select></label><span class="graph-count"><b>${visible.length}</b> notas · <b>${links.length}</b> conexiones</span></div>` +
       `<div class="graph-layout"><div class="graph-stage"><div class="graph-stage-bar"><button type="button" class="ws-button" data-portal="graph-zoom-in" aria-label="Acercar">+</button><button type="button" class="ws-button" data-portal="graph-zoom-out" aria-label="Alejar">−</button><button type="button" class="ws-button" data-portal="graph-fit">Ajustar a la ventana</button><span class="graph-hint">Arrastra para moverte · rueda para acercar · clic en un punto para abrirlo</span></div>` +
       `<div class="pixel-graph"><canvas id="knowledgeGraph" width="900" height="520" role="img" aria-label="Grafo de notas de Obsidian. También puedes elegir notas con el selector Buscar una nota."></canvas><div class="graph-tooltip" hidden></div></div>` +
       `<div class="pixel-legend">${Object.keys(GRAPH_NAMES).map(k => `<span style="--node:${GRAPH_COLORS[k]}">${GRAPH_NAMES[k]} <b>${counts[k] || 0}</b></span>`).join('')}<span class="graph-legend-size">El tamaño indica cuántos enlaces tiene la nota</span></div></div>` +
@@ -260,9 +263,10 @@
   const buddy = '<svg class="msn-buddy" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="10" cy="11" rx="5" ry="6" fill="#a9d944"/><path d="M1 28v-5c0-6 18-6 18 0v5" fill="#79ae2c"/><ellipse cx="23" cy="10" rx="5" ry="6" fill="#70bfea"/><path d="M14 29v-6c0-7 18-7 18 0v6" fill="#3193cf"/><path d="M3 23c2-3 6-4 10-2M17 22c2-3 6-4 11-2" fill="none" stroke="#fff" opacity=".55" stroke-width="2"/></svg>';
   function avatar(chat, self = false) {
     const agent = ws.agents.find(a => a.id === chat.agentId), name = self ? 'Tú' : chat.agentName;
-    const color = self ? '#5a9bd6' : agent?.color || '#39c494';
-    return `<div class="chat-avatar ${self ? 'msn-self-avatar' : ''}" title="${esc(name)}" style="--avatar:${esc(color)}"><svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true"><path fill="var(--avatar)" d="M0 0h32v32H0z"/><path fill="#fff" opacity=".2" d="M0 0h32v12H0z"/><path fill="#28354b" d="M10 5h12v4h3v10H7V9h3z"/><path fill="#f3cfa7" d="M10 10h12v10H10z"/><path fill="#364557" d="M11 12h2v2h-2zm8 0h2v2h-2z"/><path fill="#d39578" d="M14 17h5v1h-5z"/><path fill="#f8fbff" d="M8 22h16v10H8z"/><path fill="#435b82" d="M14 22h4v10h-4z"/></svg><span class="msn-presence ${chat.status === 'running' ? 'busy' : ''}"></span></div>`;
+    const picture = window.OfficeAvatars ? window.OfficeAvatars.html(self ? { color: '#5a9bd6' } : agent || { color: '#39c494' }) : '';
+    return `<div class="chat-avatar ${self ? 'msn-self-avatar' : ''}" title="${esc(name)}">${picture}<span class="msn-presence ${chat.status === 'running' ? 'busy' : ''}"></span></div>`;
   }
+  const contactPicture = a => `<span class="msn-contact-pic">${window.OfficeAvatars ? window.OfficeAvatars.html(a) : ''}</span>`;
   function contactProjects(id) {
     return ws.projects;
   }
@@ -275,7 +279,7 @@
     const projects = agentId ? contactProjects(agentId) : ws.projects;
     return `<div class="msn-identity">${buddy}<div><strong>Mi oficina</strong><small><span class="msn-status-dot"></span> Disponible <span>⌄</span></small><span class="msn-personal-message">Un proyecto a la vez ♫</span></div></div>
       <div class="msn-contact-actions">${btn('new-chat', '✉ Nueva conversación')}${btn('projects', '▰ Proyectos')}</div><label class="msn-search-label"><span class="sr-only">Buscar contactos y proyectos</span><input type="search" id="messengerSearch" value="${esc(contactSearch)}" placeholder="Buscar un contacto o proyecto…"></label>
-      <div class="msn-group-title">▾ Contactos (${agents.length})</div><div class="msn-contacts">${agents.map(a => `<button type="button" class="msn-contact" data-portal="contact" data-id="${esc(a.id)}" aria-current="${agentId === a.id}" data-search="${esc(a.name.toLowerCase())}"><span class="msn-status-dot ${conversations.some(c => c.agentId === a.id && c.status === 'running') ? 'busy' : ''}"></span><b>${esc(a.name)}</b><small>${conversations.some(c => c.agentId === a.id && c.status === 'running') ? 'Ocupado' : 'Disponible'}</small></button>`).join('')}</div>
+      <div class="msn-group-title">▾ Contactos (${agents.length})</div><div class="msn-contacts">${agents.map(a => `<div class="msn-contact-row" data-search="${esc(a.name.toLowerCase())}"><button type="button" class="msn-contact-picture" data-portal="change-avatar" data-agent="${esc(a.id)}" title="Cambiar imagen de ${esc(a.name)}" aria-label="Cambiar imagen de ${esc(a.name)}">${contactPicture(a)}</button><button type="button" class="msn-contact" data-portal="contact" data-id="${esc(a.id)}" aria-current="${agentId === a.id}"><span class="msn-status-dot ${conversations.some(c => c.agentId === a.id && c.status === 'running') ? 'busy' : ''}"></span><b>${esc(a.name)}</b><small>${conversations.some(c => c.agentId === a.id && c.status === 'running') ? 'Ocupado' : 'Disponible'}</small></button></div>`).join('')}</div>
       <div class="msn-group-title">▾ Proyectos (${projects.length})</div><div class="msn-project-list">${projects.length ? projects.map(p => `<button type="button" data-portal="contact-project" data-id="${esc(p.id)}" data-agent="${esc(agentId)}" data-search="${esc(p.name.toLowerCase())}" class="msn-project" aria-current="${currentChat?.projectId === p.id}"><span aria-hidden="true">▰</span><span>${esc(p.name)}<small>${p.category === 'work' ? 'Trabajo' : 'Personal'} · ${p.tasks.filter(t => t.status !== 'done').length} pendientes</small></span></button>`).join('') : '<p class="msn-empty-list">Aún no hay proyectos. Impórtalos desde Proyectos.</p>'}</div>
       <div class="msn-group-title">▾ Conversaciones (${chats.length})</div>${chats.map(c => `<button type="button" class="chat-thread" data-portal="open-chat" data-id="${c.id}" aria-current="${c.id === currentChat?.id}" data-search="${esc((c.title + ' ' + c.projectName).toLowerCase())}">${avatar(c)}<div><b>${esc(c.title)}</b><small>${esc(c.projectName)}</small><small>${c.status === 'running' ? 'Escribiendo un mensaje…' : esc(c.preview || 'Sin mensajes')}</small></div></button>`).join('')}<div class="msn-sidebar-footer">${buddy}<span>Oficina de Agentes<br><small>Tu espacio de trabajo conectado</small></span></div>`;
   }
@@ -299,11 +303,12 @@
     const chat = currentChat;
     const selectedAgent = ws.agents.find(a => a.id === (contactAgent || preferredAgent)), contactName = !newChat && chat ? teamLabel(chat) : selectedAgent?.name ? selectedAgent.name + ' + equipo' : 'Claude + Codex';
     const portrait = chat && !newChat ? chat : { agentId: selectedAgent?.id || ws.agents.find(a => a.enabled)?.id, agentName: contactName, status: 'idle' };
-    panel.innerHTML = `<div class="msn-window ${maximized ? 'maximized' : ''}" aria-label="Windows Live Messenger de la oficina"><div class="msn-titlebar"><div>${buddy}<span>${esc(contactName)} — Windows Live Messenger</span></div><div class="msn-window-controls"><button type="button" data-portal="minimize-chat" aria-label="Minimizar conversación">―</button><button type="button" data-portal="maximize-chat" aria-label="Maximizar conversación" aria-pressed="${maximized}">□</button><button type="button" data-portal="close-chat" aria-label="Cerrar ventana de conversación">×</button></div></div>
+    WM.setTitle('chat', contactName + ' — Messenger');
+    host('chat').innerHTML = `<div class="msn-window" aria-label="Windows Live Messenger de la oficina"><div class="msn-titlebar"><div>${buddy}<span>${esc(contactName)} — Windows Live Messenger</span></div><div class="msn-window-controls"><button type="button" data-wm="minimize" aria-label="Minimizar conversación">―</button><button type="button" data-wm="maximize" aria-label="Maximizar conversación">□</button><button type="button" data-wm="close" aria-label="Cerrar ventana de conversación">×</button></div></div>
       <div class="chat-shell"><aside class="chat-sidebar" id="chatSidebar">${chatSidebar()}</aside><section class="chat-main"><div class="msn-conversation-heading">${avatar(portrait)}<div><h2>${esc(contactName)} <span>${chat && !newChat && chat.status === 'running' ? '(Ocupado)' : '(Disponible)'}</span></h2><p>${chat && !newChat ? esc(chat.projectName) + ' · ' + esc(chat.model || 'Modelo predeterminado') : 'Selecciona un proyecto y empieza a conversar'}</p></div>${buddy}</div>
       ${newChat ? `<div class="portal-reader msn-setup">${createChatForm()}</div>` : chat ? `<div class="msn-toolbar">${btn('chat-docs', '<span aria-hidden="true">▤</span> Documentación', `data-project="${chat.projectId}"`)}${btn('show-project', '<span aria-hidden="true">▰</span> Proyecto')}${btn('new-chat', '<span aria-hidden="true">✉</span> Nueva conversación')}<span class="msn-toolbar-mode">${chat.allowChanges ? 'Edición habilitada' : 'Solo consulta'}</span></div>
       <div class="msn-chat-workspace"><div class="msn-transcript-column"><div class="chat-messages" id="chatMessages" role="log" aria-label="Conversación">${messagesHtml(chat)}</div><div class="chat-composer"><div class="msn-format-bar">${btn('emoticons', '<span aria-hidden="true">☺</span><span class="sr-only">Insertar emoticono</span>', 'aria-expanded="false"')}${btn('format-bold', '<b>A</b><span class="sr-only">Insertar texto destacado</span>')}${btn('insert-context', '<span aria-hidden="true">▤</span> Pedir contexto')}<span>Enter para enviar</span></div><div class="msn-emoticon-picker" hidden>${['🙂', '😄', '😉', '😎', '👍', '❤️', '☕', '💡'].map(emoji => btn('insert-emoji', emoji, `data-emoji="${emoji}" aria-label="Insertar ${emoji}"`)).join('')}</div><form id="messageForm"><label><span class="sr-only">Escribe un mensaje</span><textarea name="text" id="chatText" rows="3" maxlength="32000" placeholder="Escribe un mensaje…" required>${esc(drafts.get(chat.id) || pendingText)}</textarea></label><div class="msn-send-buttons"><button class="ws-button" id="sendMessage" aria-label="Enviar mensaje" ${chat.status === 'running' ? 'disabled' : ''}>Enviar</button>${btn('stop-chat', 'Detener', `id="stopChat" ${chat.status !== 'running' ? 'hidden' : ''}`)}</div></form><div class="chat-activity" id="chatActivity" role="status">${esc(chat.activity || 'Últimos mensajes guardados en tu proyecto.')}</div></div></div>
-      <aside class="msn-avatar-rail"><div class="msn-display-picture">${avatar(chat)}<span>${esc(chat.agentName)}</span></div><div class="msn-project-card"><strong>▰ ${esc(chat.projectName)}</strong><small>${esc(ws.projects.find(p => p.id === chat.projectId)?.category === 'work' ? 'Trabajo' : 'Personal')}</small>${btn('chat-docs', 'Ver documentación', `data-project="${chat.projectId}"`)}</div><div class="msn-display-picture msn-own-picture">${avatar(chat, true)}<span>Tú</span></div></aside></div>` : `<div class="chat-welcome">${buddy}<h3>¡Hola! ¿Con quién quieres conversar?</h3><p>Selecciona un personaje y uno de sus proyectos en tu lista de contactos.</p>${btn('new-chat', 'Iniciar una conversación')}</div>`}
+      <aside class="msn-avatar-rail"><button type="button" class="msn-display-picture msn-change-picture" data-portal="change-avatar" data-agent="${esc(chat.agentId)}" title="Cambiar imagen para mostrar">${avatar(chat)}<span>${esc(chat.agentName)}</span><small>Cambiar imagen…</small></button><div class="msn-project-card"><strong>▰ ${esc(chat.projectName)}</strong><small>${esc(ws.projects.find(p => p.id === chat.projectId)?.category === 'work' ? 'Trabajo' : 'Personal')}</small>${btn('chat-docs', 'Ver documentación', `data-project="${chat.projectId}"`)}</div><div class="msn-display-picture msn-own-picture">${avatar(chat, true)}<span>Tú</span></div></aside></div>` : `<div class="chat-welcome">${buddy}<h3>¡Hola! ¿Con quién quieres conversar?</h3><p>Selecciona un personaje y uno de sus proyectos en tu lista de contactos.</p>${btn('new-chat', 'Iniciar una conversación')}</div>`}
       <div class="msn-statusbar"><span id="chatConnection">Conectando…</span><span>Los mensajes se guardan en Obsidian</span></div></section></div></div>`;
     filterContacts(); updateConnection(); const messages = document.querySelector('#chatMessages'); if (messages) messages.scrollTop = messages.scrollHeight;
     if (chat && !newChat) updateTeamDisplay(chat);
@@ -317,27 +322,21 @@
     }
   }
   function updateTeamDisplay(chat) {
-    const title = panel.querySelector('.msn-titlebar > div:first-child > span');
+    const el = host('chat'); if (!el) return;
+    const title = el.querySelector('.msn-titlebar > div:first-child > span');
     if (title) title.textContent = teamLabel(chat) + ' — Windows Live Messenger';
-    const heading = panel.querySelector('.msn-conversation-heading h2');
+    WM.setTitle('chat', teamLabel(chat) + ' — Messenger');
+    const heading = el.querySelector('.msn-conversation-heading h2');
     if (heading) { heading.firstChild.nodeValue = teamLabel(chat) + ' '; heading.querySelector('span').textContent = chat.status === 'running' ? '(Trabajando)' : '(Disponible)'; }
     const models = chat.participants?.map(p => `${p.name}: ${p.model || 'predeterminado'}`).join(' · ') || chat.model || 'Modelo predeterminado';
-    const subtitle = panel.querySelector('.msn-conversation-heading p'); if (subtitle) subtitle.textContent = chat.projectName + ' · ' + models;
+    const subtitle = el.querySelector('.msn-conversation-heading p'); if (subtitle) subtitle.textContent = chat.projectName + ' · ' + models;
   }
-  function filterContacts() { panel.querySelectorAll('[data-search]').forEach(el => { el.hidden = !el.dataset.search.includes(contactSearch.toLowerCase()); }); }
+  function filterContacts() { host('chat')?.querySelectorAll('[data-search]').forEach(el => { el.hidden = !el.dataset.search.includes(contactSearch.toLowerCase()); }); }
   function rememberDraft() { const editor = document.querySelector('#chatText'); if (currentChat && editor) drafts.set(currentChat.id, editor.value); }
   function insertText(text, selectText = false) {
     const editor = document.querySelector('#chatText'); if (!editor) return;
     const start = editor.selectionStart, end = editor.selectionEnd;
     editor.setRangeText(text, start, end, selectText ? 'select' : 'end'); editor.focus(); rememberDraft();
-  }
-  function dockChat() {
-    rememberDraft(); document.querySelector('#messengerDock')?.remove();
-    const dock = document.createElement('button'); dock.id = 'messengerDock'; dock.type = 'button'; dock.className = 'msn-taskbar-contact';
-    dock.innerHTML = buddy + `<span>${esc(currentChat?.agentName || 'Messenger')}<small>${esc(currentChat?.projectName || 'Oficina de Agentes')}</small></span>`;
-    dock.setAttribute('aria-label', 'Restaurar conversación de Messenger');
-    dock.onclick = () => { dock.remove(); preferredProject = ''; preferredAgent = ''; document.dispatchEvent(new CustomEvent('office:module', { detail: 'chat' })); };
-    document.body.append(dock); document.dispatchEvent(new CustomEvent('office:module', { detail: 'office' }));
   }
   function updateConnection() { const el = document.querySelector('#chatConnection'); if (el) el.textContent = stream?.readyState === EventSource.OPEN ? '● Conectado' : 'Reconectando…'; }
   function updateChat(chat) {
@@ -346,7 +345,7 @@
     conversations = [summary, ...conversations.filter(c => c.id !== chat.id)].sort((a, b) => b.updated.localeCompare(a.updated));
     if (currentChat?.id === chat.id) {
       currentChat = chat;
-      if (view === 'chat' && !newChat) {
+      if (WM.isOpen('chat') && !newChat) {
         updateTeamDisplay(chat);
         const messages = document.querySelector('#chatMessages');
         if (messages) { const nearEnd = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 100; messages.innerHTML = messagesHtml(chat); if (nearEnd) messages.scrollTop = messages.scrollHeight; }
@@ -355,9 +354,10 @@
         const send = document.querySelector('#sendMessage'); if (send) send.disabled = chat.status === 'running' || sending;
       }
     }
-    if (view === 'chat') { const sidebar = document.querySelector('#chatSidebar'); if (sidebar) { sidebar.innerHTML = chatSidebar(); filterContacts(); } }
-    const dock = document.querySelector('#messengerDock');
-    if (dock && currentChat?.id === chat.id) { dock.classList.toggle('has-update', chat.status === 'idle'); dock.title = chat.status === 'running' ? 'El agente está escribiendo…' : 'Conversación actualizada'; }
+    if (WM.isOpen('chat')) { const sidebar = document.querySelector('#chatSidebar'); if (sidebar) { sidebar.innerHTML = chatSidebar(); filterContacts(); } }
+    // A minimized Messenger flashes its taskbar button when the conversation changes.
+    const task = document.querySelector('[data-wm-task="chat"]');
+    if (task && currentChat?.id === chat.id && WM.active !== 'chat') task.classList.toggle('has-update', chat.status === 'idle');
   }
   function connect() {
     if (stream) return;
@@ -373,13 +373,12 @@
     };
     stream.onerror = updateConnection;
     // Snapshots also recover simultaneous conversation updates and server restarts.
-    poll = setInterval(async () => { if (view !== 'chat') return; try { conversations = (await request('chats')).chats; if (currentChat) updateChat(await request('chat?id=' + currentChat.id)); } catch { updateConnection(); } }, 6000);
+    poll = setInterval(async () => { if (!WM.isOpen('chat')) return; try { conversations = (await request('chats')).chats; if (currentChat) updateChat(await request('chat?id=' + currentChat.id)); } catch { updateConnection(); } }, 6000);
   }
   async function show(next, state) {
-    if (view === 'chat' && currentChat) { const text = document.querySelector('#chatText'); if (text) drafts.set(currentChat.id, text.value); }
-    view = next; ws = state;
-    if (next === 'import') { discovery = await request('discover'); if (view === next) importView(); }
-    else if (next === 'docs' || next === 'graph') { library = await request('notes'); if (view === next) (next === 'docs' ? docsView : graphView)(); }
+    rememberDraft(); ws = state;
+    if (next === 'import') { discovery = await request('discover'); if (WM.isOpen(next)) importView(); }
+    else if (next === 'docs' || next === 'graph') { library = await request('notes'); if (WM.isOpen(next)) (next === 'docs' ? docsView : graphView)(); }
     else if (next === 'chat') {
       conversations = (await request('chats')).chats;
       if (preferredProject || preferredAgent) {
@@ -389,22 +388,32 @@
       } else if (currentChat) currentChat = await request('chat?id=' + currentChat.id);
       else if (conversations.length) currentChat = await request('chat?id=' + conversations[0].id);
       if (currentChat && !newChat) { contactAgent = currentChat.agentId; preferredProject = ''; preferredAgent = ''; }
-      if (view === next) { document.querySelector('#messengerDock')?.remove(); chatView(); connect(); }
+      if (WM.isOpen(next)) { chatView(); connect(); }
     }
   }
-  panel.addEventListener('click', async e => {
-    const b = e.target.closest('[data-portal]'); if (!b) return;
+  // Delegated listeners: only events coming from a portal window are handled here.
+  const portalEvent = e => PORTAL_WINDOWS.includes(windowOf(e.target));
+  WM.onBeforeClose('chat', () => { rememberDraft(); return true; });
+  async function saveAvatar(agentId, avatar) {
+    const r = await fetch('/api/workspace/avatar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Office-Token': ws.token }, body: JSON.stringify({ agentId, avatar }) });
+    const data = await r.json(); if (!r.ok) throw new Error(data.error || 'No se pudo guardar la imagen.');
+    return data;
+  }
+  document.addEventListener('office:workspace', e => { ws = e.detail; if (WM.isOpen('chat')) { rememberDraft(); chatView(); } });
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-portal]'); if (!b || !portalEvent(e)) return;
+    const win = windowOf(b);
     try {
       const action = b.dataset.portal;
       if (action === 'projects') document.dispatchEvent(new CustomEvent('office:module', { detail: 'projects' }));
       else if (action === 'refresh-import') { discovery = await request('discover'); importView(); }
-      else if (action === 'refresh-notes') { library = await request('notes'); (view === 'graph' ? graphView : docsView)(); }
+      else if (action === 'refresh-notes') { library = await request('notes'); if (WM.isOpen('graph')) graphView(); if (WM.isOpen('docs')) docsView(); }
       else if (action === 'docs-view' || action === 'graph-view') document.dispatchEvent(new CustomEvent('office:module', { detail: action === 'docs-view' ? 'docs' : 'graph' }));
       else if (action === 'graph-node') selectGraphNode(b.dataset.id);
       else if (action === 'graph-clear') selectGraphNode('');
       else if (action === 'graph-zoom-in' || action === 'graph-zoom-out') zoomGraph(action === 'graph-zoom-in' ? 1.25 : 1 / 1.25);
       else if (action === 'graph-fit') { fitGraph(); drawGraph(); }
-      else if (action === 'note' || action === 'read-note') { noteId = b.dataset.id; if (view === 'graph' && action === 'note') selectGraphNode(noteId); else { docFilter = ''; document.dispatchEvent(new CustomEvent('office:module', { detail: 'docs' })); } }
+      else if (action === 'note' || action === 'read-note') { noteId = b.dataset.id; if (win === 'graph' && action === 'note') selectGraphNode(noteId); else { docFilter = ''; document.dispatchEvent(new CustomEvent('office:module', { detail: 'docs' })); } }
       else if (action === 'new-chat') { rememberDraft(); newChat = true; preferredProject = ''; preferredTask = ''; preferredAgent = contactAgent || currentChat?.agentId || ''; chatView(); }
       else if (action === 'cancel-new-chat') { newChat = false; chatView(); }
       else if (action === 'open-chat') { rememberDraft(); currentChat = await request('chat?id=' + b.dataset.id); contactAgent = currentChat.agentId; preferredProject = ''; preferredTask = ''; preferredAgent = ''; newChat = false; pendingText = ''; chatView(); }
@@ -416,11 +425,13 @@
         if (existing) { contactAgent = currentChat.agentId; preferredProject = ''; preferredAgent = ''; }
         chatView();
       }
-      else if (action === 'minimize-chat') dockChat();
-      else if (action === 'close-chat') { rememberDraft(); maximized = false; document.querySelector('#messengerDock')?.remove(); document.dispatchEvent(new CustomEvent('office:module', { detail: 'office' })); }
-      else if (action === 'maximize-chat') { maximized = !maximized; document.querySelector('.msn-window').classList.toggle('maximized', maximized); b.setAttribute('aria-pressed', String(maximized)); b.setAttribute('aria-label', maximized ? 'Restaurar tamaño de conversación' : 'Maximizar conversación'); }
+      else if (action === 'change-avatar') {
+        const agent = ws.agents.find(a => a.id === b.dataset.agent); if (!agent) return;
+        const value = await window.OfficeAvatars.pick(agent); if (value === null) return;
+        ws = await saveAvatar(agent.id, value); document.dispatchEvent(new CustomEvent('office:workspace', { detail: ws })); toast(`Imagen de ${agent.name} actualizada.`);
+      }
       else if (action === 'emoticons') { const picker = document.querySelector('.msn-emoticon-picker'); picker.hidden = !picker.hidden; b.setAttribute('aria-expanded', String(!picker.hidden)); }
-      else if (action === 'insert-emoji') { insertText(b.dataset.emoji); document.querySelector('.msn-emoticon-picker').hidden = true; panel.querySelector('[data-portal="emoticons"]').setAttribute('aria-expanded', 'false'); }
+      else if (action === 'insert-emoji') { insertText(b.dataset.emoji); document.querySelector('.msn-emoticon-picker').hidden = true; host('chat').querySelector('[data-portal="emoticons"]').setAttribute('aria-expanded', 'false'); }
       else if (action === 'format-bold') { const editor = document.querySelector('#chatText'); insertText('**' + (editor.value.slice(editor.selectionStart, editor.selectionEnd) || 'texto') + '**', true); }
       else if (action === 'insert-context') insertText('Resume el estado actual de este proyecto, las decisiones tomadas y los próximos pasos.');
       else if (action === 'show-project') {
@@ -436,9 +447,10 @@
       else if (action === 'chat-docs') { docFilter = b.dataset.project; noteId = ''; document.dispatchEvent(new CustomEvent('office:module', { detail: 'docs' })); }
     } catch (err) { toast(err.message, true); b.disabled = false; }
   });
-  panel.addEventListener('change', e => {
+  document.addEventListener('change', e => {
+    if (!portalEvent(e)) return;
     if (e.target.id === 'docFilter') { docFilter = e.target.value; noteId = filteredNotes()[0]?.id || ''; docsView(); }
-    else if (e.target.id === 'graphFilter') { docFilter = e.target.value; noteId = ''; graphView(); }
+    else if (e.target.id === 'graphFilter') { graphFilter = e.target.value; noteId = ''; graphView(); }
     else if (e.target.id === 'graphNode') selectGraphNode(e.target.value);
     else if (e.target.id === 'chatProject') { preferredProject = e.target.value; preferredTask = ''; chatView(); }
     else if (e.target.id === 'chatTask') {
@@ -448,9 +460,10 @@
       document.querySelector('#chatModel').value = model;
     } else if (e.target.id === 'chatAgent') { preferredAgent = e.target.value; document.querySelector('#chatModel').value = ws.agents.find(a => a.id === e.target.value)?.model || ''; }
   });
-  panel.addEventListener('input', e => { if (e.target.id === 'noteSearch') { noteSearch = e.target.value; document.querySelector('#noteList').innerHTML = noteList(); } else if (e.target.id === 'chatText' && currentChat) drafts.set(currentChat.id, e.target.value); else if (e.target.id === 'messengerSearch') { contactSearch = e.target.value; filterContacts(); } });
-  panel.addEventListener('keydown', e => { if (e.target.id === 'chatText' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (currentChat?.status !== 'running' && !sending) document.querySelector('#messageForm').requestSubmit(); } });
-  panel.addEventListener('submit', async e => {
+  document.addEventListener('input', e => { if (!portalEvent(e)) return; if (e.target.id === 'noteSearch') { noteSearch = e.target.value; document.querySelector('#noteList').innerHTML = noteList(); } else if (e.target.id === 'chatText' && currentChat) drafts.set(currentChat.id, e.target.value); else if (e.target.id === 'messengerSearch') { contactSearch = e.target.value; filterContacts(); } });
+  document.addEventListener('keydown', e => { if (!portalEvent(e)) return; if (e.target.id === 'chatText' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (currentChat?.status !== 'running' && !sending) document.querySelector('#messageForm').requestSubmit(); } });
+  document.addEventListener('submit', async e => {
+    if (!portalEvent(e)) return;
     const form = e.target; if (!['importForm', 'newChatForm', 'messageForm'].includes(form.id)) return;
     e.preventDefault(); const submit = form.querySelector('button:not([type="button"])'); if (submit) submit.disabled = true;
     try {

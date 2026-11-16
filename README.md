@@ -37,7 +37,16 @@ Este flujo también se aplica a las conversaciones antiguas al enviar el siguien
 
 ### Navegación Windows 98
 
-El escritorio y las pantallas de oficina, proyectos, documentación, red neuronal y configuración usan el estilo Windows 98: fondo verde azulado, ventanas grises, barra de título azul, pestañas, controles con relieve y campos blancos. El menú **Inicio**, los accesos del escritorio y la barra de tareas permiten cambiar de módulo. El reloj muestra la hora local. La ventana de **MSN conserva su diseño Windows Live Messenger 2009**.
+La oficina es un escritorio Windows 98. Cada módulo (**Mi oficina, Mis proyectos, Documentación, Red neuronal, Messenger, Winamp y Panel de control**) se abre en **su propia ventana** desde los iconos del escritorio o el menú **Inicio**. Puedes tener varias abiertas a la vez, por ejemplo la Red neuronal junto a Mis proyectos:
+
+- **Mover:** arrastra la barra de título. **Cambiar tamaño:** arrastra cualquier borde o la esquina inferior derecha.
+- **Minimizar, maximizar y cerrar** con los botones de la barra de título. Doble clic en el título también maximiza o restaura.
+- **Barra de tareas:** cada ventana abierta tiene su botón. Un clic la trae al frente; si ya está al frente, la minimiza.
+- La posición, el tamaño y las ventanas abiertas se recuerdan en este navegador. Cerrar Configuración con cambios sin guardar pide confirmación.
+
+**Messenger** conserva su diseño Windows Live Messenger 2009 como marco de su ventana, con texto más grande. Para cambiar la **imagen de un contacto**, haz clic en su imagen en la lista de contactos, en **Cambiar imagen…** junto a la conversación o en la imagen de su tarjeta en Configuración. Puedes elegir de la galería o usar tu propia imagen (PNG, JPG, WEBP o GIF), que se recorta en cuadrado a 96 × 96 y se guarda en `workspace.json`.
+
+**Winamp** reproduce enlaces de YouTube Music con el reproductor oficial de YouTube. Pega el enlace de una playlist, álbum o canción (en YouTube Music: **Compartir → Copiar enlace**) y pulsa **Agregar**. La lista queda guardada en `workspace.json`, solo con los identificadores. Funciona con contenido público o no listado. Las radios automáticas («Mix») y la lista privada «Me gusta» no se pueden incrustar, y algunos temas solo se pueden escuchar en YouTube por decisión de su propietario. Requiere conexión a internet.
 
 El chat usa las instalaciones y el inicio de sesión existentes de **Claude Code** y **Codex CLI**. No necesita copiar claves al portal. Gemini puede seguir configurado para el lanzador de terminal, pero todavía no tiene adaptador de chat integrado.
 

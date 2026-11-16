@@ -420,7 +420,7 @@ http.createServer(async (req, res) => {
   if (pathname === '/api/agents') return json(res, snapshot());
   if (pathname === '/api/usage') return json(res, usage());
   if (pathname === '/api/config') return json(res, publicConfig());
-  if (['/workspace-ui.js', '/workspace.css', '/portal-ui.js', '/portal.css', '/windows98.css'].includes(pathname)) {
+  if (['/workspace-ui.js', '/workspace.css', '/portal-ui.js', '/portal.css', '/windows98.css', '/window-manager.js', '/avatars.js', '/winamp.js', '/winamp.css'].includes(pathname)) {
     res.writeHead(200, { 'Content-Type': pathname.endsWith('.js') ? 'text/javascript; charset=utf-8' : 'text/css; charset=utf-8' });
     return fs.createReadStream(path.join(__dirname, pathname.slice(1))).pipe(res);
   }

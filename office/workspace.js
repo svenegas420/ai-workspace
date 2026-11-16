@@ -15,6 +15,28 @@ function string(value, max = 200, required = false) {
   return value.trim();
 }
 function choice(value, values) { if (!values.includes(value)) fail('Opción inválida.'); return value; }
+// Contact pictures: a preset from the gallery or a small raster image (never SVG, so no script can ride along).
+const AVATAR_PRESET = /^preset:[a-z0-9-]{1,40}$/;
+const AVATAR_IMAGE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/;
+function avatarValue(value) {
+  if (value === undefined || value === null || value === '') return '';
+  if (typeof value !== 'string' || value.length > 120000 || !(AVATAR_PRESET.test(value) || AVATAR_IMAGE.test(value))) fail('Imagen de contacto inválida.');
+  return value;
+}
+// Saved YouTube Music links: only video/playlist IDs are stored, never arbitrary URLs.
+const YT_ID = /^[A-Za-z0-9_-]{6,80}$/;
+function musicItems(items) {
+  if (!Array.isArray(items) || items.length > 200) fail('La lista de música admite hasta 200 elementos.');
+  const seen = new Set();
+  return items.map(item => {
+    const id = string(item?.id, 40, true), title = string(item?.title || '', 200);
+    const videoId = item?.videoId ? string(item.videoId, 80) : '', listId = item?.listId ? string(item.listId, 80) : '';
+    if (!/^[a-z0-9-]+$/.test(id) || seen.has(id)) fail('Identificador de canción inválido.');
+    if ((!videoId && !listId) || (videoId && !YT_ID.test(videoId)) || (listId && !YT_ID.test(listId))) fail('Enlace de YouTube Music inválido.');
+    seen.add(id);
+    return { id, title: title || (listId ? 'Playlist' : 'Canción'), videoId, listId };
+  });
+}
 const jsonText = data => JSON.stringify(data, null, 2) + '\n';
 const md = value => String(value || '').replace(/[\r\n]/g, ' ').replace(/[[\]<>|]/g, '');
 
@@ -89,7 +111,7 @@ function createWorkspace(options = {}) {
       const model = string(a.model || '', 120);
       if (model && !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$/.test(model)) fail('Modelo inválido.');
       if (!/^#[0-9a-f]{6}$/i.test(a.color)) fail('Color inválido.');
-      return { id, name: string(a.name, 100, true), provider: choice(a.provider, PROVIDERS), role: choice(a.role, ['lead', 'executor', 'reviewer']), color: a.color, enabled: !!a.enabled, model, instructions: string(a.instructions || '', 8000) };
+      return { id, name: string(a.name, 100, true), provider: choice(a.provider, PROVIDERS), role: choice(a.role, ['lead', 'executor', 'reviewer']), color: a.color, enabled: !!a.enabled, model, instructions: string(a.instructions || '', 8000), avatar: avatarValue(a.avatar) };
     });
     if (new Set(agents.map(a => a.id)).size !== agents.length) fail('Los IDs de agentes deben ser únicos.');
     if (!agents.some(a => a.enabled)) fail('Activa al menos un agente.');
@@ -114,6 +136,11 @@ function createWorkspace(options = {}) {
     }
     state = { ...state, agents, rules, vaultPath }; save(); return get();
   }
+  function setAvatar(agentId, avatar) {
+    const agent = state.agents.find(a => a.id === agentId) || fail('Agente desconocido.');
+    agent.avatar = avatarValue(avatar); atomic(file, jsonText(state)); return get();
+  }
+  function setMusic(items) { state.music = musicItems(items); atomic(file, jsonText(state)); return get(); }
   function upsertProject(input) {
     const previous = input.id ? project(input.id) : null;
     const dir = path.resolve(string(input.path, 1000, true).replace(/^~(?=$|[\\/])/, home));
@@ -177,7 +204,7 @@ function createWorkspace(options = {}) {
     save(); return { ok: true, agent: payload.agentId, model: payload.model, ...get() };
   }
   save();
-  return { get, settings, upsertProject, upsertTask, updateContext, prepareLaunch, markStarted, launch, sync, token, overrides: () => clone(state.agents) };
+  return { get, settings, setAvatar, setMusic, upsertProject, upsertTask, updateContext, prepareLaunch, markStarted, launch, sync, token, overrides: () => clone(state.agents) };
 }
 
 async function handleWorkspace(req, res, workspace) {
@@ -200,6 +227,8 @@ async function handleWorkspace(req, res, workspace) {
     else if (pathname === '/api/workspace/context') result = workspace.updateContext(input.projectId, input.context);
     else if (pathname === '/api/workspace/launch') result = await workspace.launch(input.projectId, input.taskId);
     else if (pathname === '/api/workspace/sync') { workspace.sync(); result = workspace.get(); }
+    else if (pathname === '/api/workspace/avatar') result = workspace.setAvatar(input.agentId, input.avatar);
+    else if (pathname === '/api/workspace/music') result = workspace.setMusic(input.items);
     else { send(404, { error: 'Ruta no encontrada.' }); return true; }
     send(200, result);
   } catch (e) { console.error('workspace:', e.message); send(e.status || 500, { error: e.message }); }

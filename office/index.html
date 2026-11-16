@@ -4,9 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/workspace.css">
+<script defer src="/window-manager.js"></script>
+<script defer src="/avatars.js"></script>
 <script defer src="/workspace-ui.js"></script>
 <link rel="stylesheet" href="/portal.css">
 <script defer src="/portal-ui.js"></script>
+<script defer src="/winamp.js"></script>
+<link rel="stylesheet" href="/winamp.css">
 <title>Oficina de Agentes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -172,22 +176,16 @@
   <button type="button" data-desktop-module="docs">Obsidian</button>
   <button type="button" data-desktop-module="graph">Red neuronal</button>
   <button type="button" data-desktop-module="chat">Messenger</button>
+  <button type="button" data-desktop-module="winamp">Winamp</button>
   <button type="button" data-desktop-module="settings">Panel de control</button>
 </aside>
-<div class="win98-window" id="win98Window">
+<section class="w98-app win98-window" data-window="office" role="dialog" aria-label="Mi oficina" tabindex="-1">
+<div class="win98-titlebar" data-wm-drag><span class="win98-title-text">Mi oficina</span><span class="win98-title-controls"><button type="button" data-wm="minimize" aria-label="Minimizar"></button><button type="button" data-wm="maximize" aria-label="Maximizar"></button><button type="button" data-wm="close" aria-label="Cerrar"></button></span></div>
+<div class="w98-app-body">
 <header>
-  <div class="win98-titlebar"><span class="win98-title-text"><span id="win98ModuleCaption">Mi oficina</span> - Oficina de Agentes</span><span class="win98-title-controls"><button type="button" data-win98-action="minimize" aria-label="Minimizar"></button><button type="button" data-win98-action="maximize" aria-label="Maximizar"></button><button type="button" data-win98-action="close" aria-label="Cerrar"></button></span></div>
   <h1><button class="logo" id="logo" aria-label="Oficina"><i data-lucide="building-2"></i></button>Oficina de Agentes</h1>
   <div class="stats" id="stats"></div>
   <div class="controls">
-    <nav class="seg" aria-label="Módulos de la oficina" id="workspaceNav">
-      <button data-module="office" aria-pressed="true">Oficina</button>
-      <button data-module="projects" aria-pressed="false">Proyectos</button>
-      <button data-module="docs" aria-pressed="false">Documentación</button>
-      <button data-module="graph" aria-pressed="false">Red neuronal</button>
-      <button data-module="chat" aria-pressed="false">Chat</button>
-      <button data-module="settings" aria-pressed="false">Configuración</button>
-    </nav>
     <div class="seg" id="filter">
       <button data-v="all"><i data-lucide="layers"></i>Todos</button>
       <button data-v="active"><i data-lucide="zap"></i>Activos</button>
@@ -196,8 +194,6 @@
     <button class="chip" id="secretsBtn" title="Secretos encontrados"><i data-lucide="trophy"></i><b id="secretsCount">0/10</b></button>
   </div>
 </header>
-<section id="workspacePanel" hidden aria-label="Gestión de la oficina"></section>
-<div id="secrets"></div>
 <section class="usage" id="usage"></section>
 <main>
   <div class="section-head"><i data-lucide="armchair"></i>Equipo <small id="teamInfo"></small></div>
@@ -206,6 +202,8 @@
   <div class="boards" id="boards"></div>
 </main>
 </div>
+</section>
+<div id="secrets"></div>
 <footer class="win98-taskbar" aria-label="Barra de tareas">
   <button type="button" id="win98Start" aria-expanded="false" aria-controls="win98StartMenu">Inicio</button>
   <div class="win98-start-menu" id="win98StartMenu" hidden><div class="win98-start-brand"><b>Oficina</b>98</div><div>
@@ -214,10 +212,11 @@
     <button type="button" data-desktop-module="docs">Documentación</button>
     <button type="button" data-desktop-module="graph">Red neuronal</button>
     <button type="button" data-desktop-module="chat">Messenger</button>
+    <button type="button" data-desktop-module="winamp">Winamp</button>
     <hr>
     <button type="button" data-desktop-module="settings">Panel de control</button>
   </div></div>
-  <span class="win98-task-divider"></span><button type="button" id="win98CurrentTask" data-desktop-module="office">Mi oficina</button>
+  <span class="win98-task-divider"></span><div class="win98-tasks" id="win98Tasks" aria-label="Ventanas abiertas"></div>
   <div class="win98-tray"><span class="win98-tray-icon" title="Servidor local conectado" aria-label="Servidor local"></span><time id="win98Clock"></time></div>
 </footer>
 <canvas id="fx"></canvas>
