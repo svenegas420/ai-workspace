@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/workspace.css">
+<script defer src="/workspace-ui.js"></script>
+<link rel="stylesheet" href="/portal.css">
+<script defer src="/portal-ui.js"></script>
 <title>Oficina de Agentes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -158,12 +162,32 @@
   }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
+<!-- Loaded last so the Windows 98 chrome wins over the base styles above. -->
+<link rel="stylesheet" href="/windows98.css">
 </head>
 <body>
+<aside class="win98-desktop" aria-label="Accesos del escritorio">
+  <button type="button" data-desktop-module="office">Mi oficina</button>
+  <button type="button" data-desktop-module="projects">Mis proyectos</button>
+  <button type="button" data-desktop-module="docs">Obsidian</button>
+  <button type="button" data-desktop-module="graph">Red neuronal</button>
+  <button type="button" data-desktop-module="chat">Messenger</button>
+  <button type="button" data-desktop-module="settings">Panel de control</button>
+</aside>
+<div class="win98-window" id="win98Window">
 <header>
+  <div class="win98-titlebar"><span class="win98-title-text"><span id="win98ModuleCaption">Mi oficina</span> - Oficina de Agentes</span><span class="win98-title-controls"><button type="button" data-win98-action="minimize" aria-label="Minimizar"></button><button type="button" data-win98-action="maximize" aria-label="Maximizar"></button><button type="button" data-win98-action="close" aria-label="Cerrar"></button></span></div>
   <h1><button class="logo" id="logo" aria-label="Oficina"><i data-lucide="building-2"></i></button>Oficina de Agentes</h1>
   <div class="stats" id="stats"></div>
   <div class="controls">
+    <nav class="seg" aria-label="Módulos de la oficina" id="workspaceNav">
+      <button data-module="office" aria-pressed="true">Oficina</button>
+      <button data-module="projects" aria-pressed="false">Proyectos</button>
+      <button data-module="docs" aria-pressed="false">Documentación</button>
+      <button data-module="graph" aria-pressed="false">Red neuronal</button>
+      <button data-module="chat" aria-pressed="false">Chat</button>
+      <button data-module="settings" aria-pressed="false">Configuración</button>
+    </nav>
     <div class="seg" id="filter">
       <button data-v="all"><i data-lucide="layers"></i>Todos</button>
       <button data-v="active"><i data-lucide="zap"></i>Activos</button>
@@ -172,6 +196,7 @@
     <button class="chip" id="secretsBtn" title="Secretos encontrados"><i data-lucide="trophy"></i><b id="secretsCount">0/10</b></button>
   </div>
 </header>
+<section id="workspacePanel" hidden aria-label="Gestión de la oficina"></section>
 <div id="secrets"></div>
 <section class="usage" id="usage"></section>
 <main>
@@ -180,6 +205,21 @@
   <div class="section-head" id="boardsHead" hidden><i data-lucide="clipboard-list"></i>Tableros <small>PLAN.md de cada proyecto</small></div>
   <div class="boards" id="boards"></div>
 </main>
+</div>
+<footer class="win98-taskbar" aria-label="Barra de tareas">
+  <button type="button" id="win98Start" aria-expanded="false" aria-controls="win98StartMenu">Inicio</button>
+  <div class="win98-start-menu" id="win98StartMenu" hidden><div class="win98-start-brand"><b>Oficina</b>98</div><div>
+    <button type="button" data-desktop-module="office">Mi oficina</button>
+    <button type="button" data-desktop-module="projects">Proyectos</button>
+    <button type="button" data-desktop-module="docs">Documentación</button>
+    <button type="button" data-desktop-module="graph">Red neuronal</button>
+    <button type="button" data-desktop-module="chat">Messenger</button>
+    <hr>
+    <button type="button" data-desktop-module="settings">Panel de control</button>
+  </div></div>
+  <span class="win98-task-divider"></span><button type="button" id="win98CurrentTask" data-desktop-module="office">Mi oficina</button>
+  <div class="win98-tray"><span class="win98-tray-icon" title="Servidor local conectado" aria-label="Servidor local"></span><time id="win98Clock"></time></div>
+</footer>
 <canvas id="fx"></canvas>
 <script>
 /* ======================= helpers ======================= */
@@ -511,6 +551,7 @@ const roleName = r => ({ lead: 'Líder', executor: 'Ejecutor', reviewer: 'Reviso
 
 /* ======================= team (all agents side by side) ======================= */
 let data = { now: Date.now(), agents: [], plans: {} };
+let officeWorkspace = { projects: [], rules: [] };
 const cardEls = new Map();
 const seat = new Map(); let seatN = 0;      // stable order: first seen keeps its seat
 
@@ -537,6 +578,21 @@ function cardBody(a, subs, now) {
       ${subs.slice(0, 5).map(s => `<div class="sub"><span class="dot ${s.status === 'working' ? 'live' : ''}" style="--s:var(--${s.status})"></span><span>${esc(s.title || toolInfo(s.action)?.detail || 'Subagente')}</span></div>`).join('')}</div>` : ''}`;
 }
 
+function characterProjects(a) {
+  return officeWorkspace.projects || [];
+}
+function characterFooter(a) {
+  const projects = characterProjects(a), tm = teamOf(a.agent), supported = ['claude', 'codex'].includes(tm.logs);
+  return `<button class="character-chat" type="button" data-office-agent="${esc(a.agent)}" ${supported ? '' : 'disabled title="Chat disponible con Claude y Codex"'}><span class="character-chat-icon" aria-hidden="true">✉</span>Abrir conversación con ${esc(tm.name)}</button>
+    <details class="character-projects"><summary>Proyectos disponibles <span>${projects.length}</span></summary><div>${projects.length ? projects.map(p => `<button type="button" data-office-agent="${esc(a.agent)}" data-project-id="${esc(p.id)}" ${supported ? '' : 'disabled'}><span class="character-folder" aria-hidden="true">▰</span><span>${esc(p.name)}<small>${p.category === 'work' ? 'Trabajo' : 'Personal'} · ${p.tasks.filter(t => t.status !== 'done').length} pendientes</small></span><span aria-hidden="true">↗</span></button>`).join('') : '<p>No hay proyectos guardados todavía.</p>'}<button type="button" data-office-import>Administrar e importar proyectos…</button></div></details>`;
+}
+document.addEventListener('click', e => {
+  const contact = e.target.closest('[data-office-agent]');
+  if (contact && !contact.disabled) document.dispatchEvent(new CustomEvent('office:agent', { detail: { agentId: contact.dataset.officeAgent, projectId: contact.dataset.projectId || '' } }));
+  if (e.target.closest('[data-office-import]')) document.dispatchEvent(new CustomEvent('office:module', { detail: 'import' }));
+});
+document.addEventListener('office:refresh', () => loadTeam().then(render));
+
 function render() {
   const now = data.now, shown = a => filter === 'all' || a.status !== 'sleeping';
   const mains = data.agents.filter(a => a.kind === 'main' && shown(a));
@@ -544,6 +600,8 @@ function render() {
   for (const a of data.agents) if (a.kind === 'subagent' && shown(a)) { if (!subsBy.has(a.parent)) subsBy.set(a.parent, []); subsBy.get(a.parent).push(a); }
   const shownSessions = new Set(mains.map(a => a.session));
   const list = [...mains];
+  // Characters remain reachable even when no CLI session has been started.
+  for (const tm of TEAM.agents) if (!mains.some(a => a.agent === tm.id)) list.push({ id: 'contact:' + tm.id, agent: tm.id, vendor: tm.logs || tm.id, kind: 'main', session: 'contact:' + tm.id, started: 0, updated: now, project: 'Elige un proyecto', cwd: '', title: 'Listo para conversar', model: '', status: 'idle', activity: 'think', langs: [] });
   if (showSubs) for (const [p, ss] of subsBy) if (!shownSessions.has(p)) list.push(...ss);
 
   const order = id => TEAM.agents.findIndex(t => t.id === id);
@@ -570,9 +628,9 @@ function render() {
       let c = cardEls.get(a.id), fresh = false;
       if (!c) {
         const el = document.createElement('article');
-        el.innerHTML = `<div class="scene"><canvas width="${W}" height="${H}"></canvas><span class="pill vend"><span class="av"><i data-lucide="${iconOf(tm)}"></i></span>${esc(tm.name)}${a.kind === 'subagent' ? ' · sub' : ''}</span><span class="pill state"></span><span class="proj"></span><span class="langs"></span></div><div class="body"></div>`;
+        el.innerHTML = `<div class="scene"><canvas width="${W}" height="${H}"></canvas><button type="button" class="pill vend" data-office-agent="${esc(a.agent)}" aria-label="Abrir chat con ${esc(tm.name)}" ${['claude', 'codex'].includes(tm.logs) ? '' : 'disabled'}><span class="av"><i data-lucide="${iconOf(tm)}"></i></span>${esc(tm.name)}${a.kind === 'subagent' ? ' · sub' : ''}</button><span class="pill state"></span><span class="proj"></span><span class="langs"></span></div><div class="body"></div><div class="character-footer"></div>`;
         const canvas = el.querySelector('canvas');
-        c = { el, body: el.querySelector('.body'), state: el.querySelector('.state'), proj: el.querySelector('.proj'), langs: el.querySelector('.langs'), html: '', status: '', lh: null, ph: null };
+        c = { el, body: el.querySelector('.body'), footer: el.querySelector('.character-footer'), state: el.querySelector('.state'), proj: el.querySelector('.proj'), langs: el.querySelector('.langs'), html: '', status: '', lh: null, ph: null, fh: '' };
         cardEls.set(a.id, c);
         const sc = { canvas, ctx: canvas.getContext('2d'), agent: a, look: look(a), spots: [] };
         scenes.set(a.id, sc);
@@ -594,6 +652,8 @@ function render() {
       if (c.lh !== lh) { c.langs.innerHTML = lh; c.lh = lh; }
       const html = cardBody(a, subs, now);
       if (c.html !== html) { c.body.innerHTML = html; c.html = html; }
+      const footerHtml = characterFooter(a);
+      if (c.fh !== footerHtml) { const open = c.footer.querySelector('details')?.open; c.footer.innerHTML = footerHtml; if (open) c.footer.querySelector('details').open = true; c.fh = footerHtml; }
       const want = prev ? prev.nextSibling : team.firstChild;
       if (want !== c.el) team.insertBefore(c.el, want);
       prev = c.el;
@@ -771,7 +831,11 @@ async function tick() {
   } catch { $('#stats').innerHTML = '<span class="chip"><span class="dot" style="--s:var(--waiting)"></span>Sin conexión con el servidor de la oficina…</span>'; }
 }
 async function tickUsage() { try { renderUsage(await (await fetch('/api/usage', { cache: 'no-store' })).json()); } catch {} }
-async function loadTeam() { try { TEAM = await (await fetch('/api/config', { cache: 'no-store' })).json(); } catch {} }
+async function loadTeam() {
+  const results = await Promise.allSettled(['/api/config', '/api/workspace'].map(async url => (await fetch(url, { cache: 'no-store' })).json()));
+  if (results[0].status === 'fulfilled') TEAM = results[0].value;
+  if (results[1].status === 'fulfilled') officeWorkspace = results[1].value;
+}
 
 icons(); syncSecrets();
 loadTeam().then(() => { tick(); tickUsage(); });

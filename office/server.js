@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { classify } = require('./activity');
+const { createWorkspace, handleWorkspace } = require('./workspace');
+const { createPortal, handlePortal } = require('./portal');
 
 const HOME = os.homedir();
 const expand = p => (p ? path.resolve(String(p).replace(/^~(?=$|[\\/])/, HOME)) : p);
@@ -14,14 +16,17 @@ const DEFAULT_DIRS = { claude: path.join(HOME, '.claude', 'projects'), codex: pa
 const USER_CONFIG = path.join(HOME, '.ai-workspace', 'agents.json');
 const REPO_CONFIG = path.join(__dirname, '..', 'agents.json');
 let config = null, configStamp = '';
+let workspace = null;
 function loadConfig() {
   const file = fs.existsSync(USER_CONFIG) ? USER_CONFIG : REPO_CONFIG;
   let stamp = file;
   try { stamp += fs.statSync(file).mtimeMs; } catch { /* missing */ }
+  stamp += workspace ? JSON.stringify(workspace.overrides()) : '';
   if (config && stamp === configStamp) return config;
   let raw = {};
   try { raw = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^﻿/, '')); } catch (e) { console.error('config', file, e.message); }
-  const agents = (raw.agents || [{ id: 'claude', logs: 'claude' }, { id: 'codex', logs: 'codex' }])
+  const configured = workspace ? workspace.overrides().map(a => ({ ...(raw.agents || []).find(b => b.id === a.id), ...a, logs: a.provider === 'gemini' ? null : a.provider })) : raw.agents;
+  const agents = (configured || [{ id: 'claude', logs: 'claude' }, { id: 'codex', logs: 'codex' }])
     .filter(a => a && a.id && a.enabled !== false)
     .map(a => ({
       id: String(a.id), name: a.name || a.id, role: a.role || 'executor', color: a.color || '#9295a6',
@@ -405,11 +410,20 @@ function publicConfig() {
 // ---------- HTTP ----------
 const INDEX = path.join(__dirname, 'index.html');
 const json = (res, obj) => { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
-http.createServer((req, res) => {
+workspace = createWorkspace({ baseConfig: () => JSON.parse(fs.readFileSync(fs.existsSync(USER_CONFIG) ? USER_CONFIG : REPO_CONFIG, 'utf8').replace(/^\uFEFF/, '')) });
+const portal = createPortal({ workspace, baseConfig: () => JSON.parse(fs.readFileSync(fs.existsSync(USER_CONFIG) ? USER_CONFIG : REPO_CONFIG, 'utf8').replace(/^\uFEFF/, '')) });
+http.createServer(async (req, res) => {
   const pathname = req.url.split('?')[0];
+  if (await handleWorkspace(req, res, workspace)) return;
+  if (await handlePortal(req, res, portal, workspace.token)) return;
+  if (req.method !== 'GET') { res.writeHead(405); return res.end('method not allowed'); }
   if (pathname === '/api/agents') return json(res, snapshot());
   if (pathname === '/api/usage') return json(res, usage());
   if (pathname === '/api/config') return json(res, publicConfig());
+  if (['/workspace-ui.js', '/workspace.css', '/portal-ui.js', '/portal.css', '/windows98.css'].includes(pathname)) {
+    res.writeHead(200, { 'Content-Type': pathname.endsWith('.js') ? 'text/javascript; charset=utf-8' : 'text/css; charset=utf-8' });
+    return fs.createReadStream(path.join(__dirname, pathname.slice(1))).pipe(res);
+  }
   if (pathname === '/' || pathname === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return fs.createReadStream(INDEX).pipe(res);

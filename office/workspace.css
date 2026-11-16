@@ -1,0 +1,37 @@
+#workspacePanel { max-width: 1280px; margin: auto; padding: 28px 24px 60px; }
+body[data-module="projects"] .usage, body[data-module="settings"] .usage,
+body[data-module="projects"] main, body[data-module="settings"] main { display: none; }
+#workspacePanel h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.6px; }
+#workspacePanel h3 { margin: 0; font-size: 17px; }
+#workspacePanel p { color: var(--muted); margin: 6px 0 18px; }
+.ws-heading { display: flex; justify-content: space-between; gap: 16px; align-items: start; flex-wrap: wrap; margin-bottom: 22px; }
+.ws-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.ws-button, .ws-link { display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-decoration: none; padding: 9px 13px; border-radius: 9px; background: var(--panel2); color: var(--ink); border: 1px solid var(--line); cursor: pointer; font: inherit; }
+.ws-button.primary { background: #39c494; color: #102c23; border-color: #39c494; font-weight: 700; }
+.ws-button:disabled { opacity: .5; cursor: wait; }
+#workspacePanel :is(input, select, textarea) { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; font: inherit; min-width: 0; }
+#workspacePanel textarea { resize: vertical; min-height: 84px; }
+#workspacePanel :is(input, select, textarea, button, a):focus-visible { outline: 2px solid #39c494; outline-offset: 3px; }
+#workspacePanel input[type="checkbox"] { width: auto; }
+#workspacePanel label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+.ws-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 16px; }
+.ws-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.ws-card + .ws-card, .ws-section { margin-top: 20px; }
+.ws-grid > .ws-card { margin: 0; }
+.ws-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.ws-wide { grid-column: 1 / -1; }
+.ws-meta { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.ws-badge { display: inline-block; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 11px; padding: 3px 8px; }
+.ws-card .ws-actions { margin-top: 16px; }
+.ws-rule { display: grid; grid-template-columns: minmax(120px, 1fr) 1fr 1fr; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.ws-alert { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100; max-width: min(90vw, 640px); padding: 13px 20px; border-radius: 10px; color: var(--ink); background: var(--panel2); border: 1px solid #39c494; box-shadow: var(--shadow); }
+.ws-alert.error { border-color: #ef798a; }
+.ws-empty { padding: 38px 22px; border: 1px dashed var(--line); border-radius: 14px; text-align: center; color: var(--muted); }
+.ws-task { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.ws-task .ws-actions { margin-top: 0; }
+.ws-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.ws-tabs [aria-pressed="true"] { border-color: #39c494; color: #39c494; }
+.ws-context { min-height: 260px !important; font-family: var(--mono) !important; line-height: 1.7; }
+.ws-agent-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 18px; }
+.ws-agent-head label { display: flex; align-items: center; }
+@media (max-width: 650px) { #workspacePanel { padding: 22px 16px; } .ws-form-grid { grid-template-columns: 1fr; } .ws-rule { grid-template-columns: 1fr; gap: 8px; } }

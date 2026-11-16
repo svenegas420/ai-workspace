@@ -1,0 +1,281 @@
+/* Windows 98 application chrome, loaded after the base styles in index.html.
+   The Windows Live Messenger conversation window (.msn-window) keeps its own skin: every rule here skips it. */
+:root, :root:not([data-theme="dark"]) {
+  --bg: #c0c0c0; --bg2: #c0c0c0; --panel: #c0c0c0; --panel2: #dfdfdf; --ink: #000; --muted: #404040; --faint: #808080; --line: #808080;
+  --shadow: none; --mono: 'Courier New', monospace;
+  --w98-font: 'Microsoft Sans Serif', 'MS Sans Serif', Tahoma, Geneva, sans-serif;
+  --w98-face: #c0c0c0; --w98-light: #dfdfdf; --w98-hilite: #fff; --w98-shade: #808080; --w98-dark: #0a0a0a; --w98-navy: #000080;
+  --w98-raised: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-hilite), inset -2px -2px var(--w98-shade), inset 2px 2px var(--w98-light);
+  --w98-pressed: inset -1px -1px var(--w98-hilite), inset 1px 1px var(--w98-dark), inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-shade);
+  --w98-window: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-light), inset -2px -2px var(--w98-shade), inset 2px 2px var(--w98-hilite);
+  --w98-field: inset -1px -1px var(--w98-hilite), inset 1px 1px var(--w98-shade), inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-dark);
+  --w98-status: inset -1px -1px var(--w98-hilite), inset 1px 1px var(--w98-shade);
+  --w98-title: linear-gradient(90deg, #000080, #1084d0);
+  --w98-title-inactive: linear-gradient(90deg, #808080, #b5b5b5);
+  --w98-dither: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'><path fill='%23fff' d='M0 0h1v1H0zM1 1h1v1H1z'/></svg>");
+  /* 32x32 pixel icons */
+  --w98-ico-office: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M4 2h24v19H4z'/><path fill='%23dfdfdf' d='M5 3h22v17H5z'/><path fill='%23808080' d='M7 5h18v13H7z'/><path fill='%23008080' d='M8 6h16v11H8z'/><path fill='%2300c0c0' d='M9 7h7v1H9zM9 8h2v2H9z'/><path d='M11 21h10v3H11z'/><path fill='%23c0c0c0' d='M12 21h8v2h-8z'/><path d='M2 24h28v6H2z'/><path fill='%23dfdfdf' d='M3 25h26v4H3z'/><path fill='%23808080' d='M5 27h14v1H5z'/><path fill='%2300ff00' d='M25 26h2v1h-2z'/></svg>");
+  --w98-ico-projects: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M2 6h11v2h17v21H2z'/><path fill='%23ffff9c' d='M3 7h9v2h17v19H3z'/><path d='M3 12h26v1H3z'/><path fill='%23e5c300' d='M3 13h26v15H3z'/><path fill='%23fff3a0' d='M3 13h26v1H3z'/><path fill='%23a08000' d='M3 27h26v1H3z'/></svg>");
+  --w98-ico-docs: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M6 2h21v28H6z'/><path fill='%23800080' d='M7 3h17v26H7z'/><path fill='%23c060c0' d='M8 3h2v26H8z'/><path fill='%23fff' d='M24 4h2v25h-2z'/><path fill='%23808080' d='M25 6h1v1h-1zM25 10h1v1h-1zM25 14h1v1h-1zM25 18h1v1h-1zM25 22h1v1h-1z'/><path fill='%23fff' d='M12 7h10v6H12z'/><path d='M13 9h8v1h-8zM13 11h6v1h-6z'/></svg>");
+  --w98-ico-graph: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%230000a8' stroke='%23000'/><path shape-rendering='crispEdges' fill='%2300a800' d='M8 7h7v3h3v4h-4v4h-3v-3H6v-5h2zM19 18h7v3h-2v4h-5z'/><path fill='none' stroke='%2366ccff' d='M5 12q11 4 22 0M5 20q11 -4 22 0M16 3q-7 13 0 26'/><circle cx='16' cy='16' r='13' fill='none' stroke='%23000'/></svg>");
+  --w98-ico-chat: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='21' cy='9' r='5' fill='%233399dd' stroke='%23000'/><path d='M13 27c0-7 4-10 8-10s9 3 9 10z' fill='%233399dd' stroke='%23000'/><circle cx='12' cy='11' r='5' fill='%2366bb33' stroke='%23000'/><path d='M3 29c0-7 4-10 9-10s9 3 9 10z' fill='%2366bb33' stroke='%23000'/></svg>");
+  --w98-ico-settings: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M3 4h26v24H3z'/><path fill='%23c0c0c0' d='M4 5h24v22H4z'/><path fill='%23000080' d='M4 5h24v3H4z'/><path fill='%23fff' d='M5 9h1v17H5z'/><path fill='%23808080' d='M9 11h1v13H9zM16 11h1v13h-1zM23 11h1v13h-1z'/><path d='M7 14h5v3H7zM14 19h5v3h-5zM21 12h5v3h-5z'/><path fill='%23ff0000' d='M8 15h3v1H8z'/><path fill='%2300a000' d='M15 20h3v1h-3z'/><path fill='%23ffd800' d='M22 13h3v1h-3z'/></svg>");
+  --w98-ico-start: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M0 2h1v1H0zM0 5h1v1H0zM0 9h1v1H0zM0 12h1v1H0zM2 3h1v1H2zM2 10h1v1H2z'/><path fill='%23ff0000' d='M4 2h4v1h1v4H8V6H4z'/><path fill='%2300a000' d='M9 1h2v1h3v4h-3V5H9z'/><path fill='%230000ff' d='M4 8h4v1h1v4H8v-1H4z'/><path fill='%23ffd800' d='M9 7h2v1h3v5h-3v-1H9z'/></svg>");
+  --w98-ico-tray: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M1 1h14v10H1z'/><path fill='%23c0c0c0' d='M2 2h12v8H2z'/><path fill='%23008080' d='M3 3h10v6H3z'/><path d='M5 11h6v2H5zM3 13h10v2H3z'/><path fill='%2300ff00' d='M11 14h1v1h-1z'/></svg>");
+}
+[data-desktop-module="office"], body:not([data-module]), body[data-module="office"] { --w98-icon: var(--w98-ico-office); }
+[data-desktop-module="projects"], [data-desktop-module="import"], body[data-module="projects"], body[data-module="import"] { --w98-icon: var(--w98-ico-projects); }
+[data-desktop-module="docs"], body[data-module="docs"] { --w98-icon: var(--w98-ico-docs); }
+[data-desktop-module="graph"], body[data-module="graph"] { --w98-icon: var(--w98-ico-graph); }
+[data-desktop-module="chat"], body[data-module="chat"] { --w98-icon: var(--w98-ico-chat); }
+[data-desktop-module="settings"], body[data-module="settings"] { --w98-icon: var(--w98-ico-settings); }
+
+/* ---------- desktop ---------- */
+html { background: #008080; }
+body { background: #008080; color: #000; font: 14px/1.45 var(--w98-font); -webkit-font-smoothing: none; padding-bottom: 48px; }
+.win98-window :not(code, pre, kbd, .proj, .proj *, .msn-window, .msn-window *),
+.win98-taskbar, .win98-taskbar *, .win98-desktop * { font-family: var(--w98-font); letter-spacing: 0; }
+.win98-desktop { position: fixed; z-index: 2; top: 10px; left: 6px; width: 88px; display: grid; gap: 16px; }
+.win98-desktop button { display: grid; justify-items: center; gap: 5px; width: 88px; padding: 0 2px 2px; border: 0; background: none; color: #fff; font-size: 14px; line-height: 1.25; cursor: pointer; text-align: center; }
+.win98-desktop button::before { content: ''; width: 32px; height: 32px; background: var(--w98-icon) center / 32px no-repeat; image-rendering: pixelated; }
+.win98-desktop button:focus { outline: none; }
+/* Selected icon: navy-tinted image and highlighted label with a dotted focus rectangle. */
+.win98-desktop button:focus-visible::before { filter: brightness(.6) sepia(1) hue-rotate(190deg) saturate(5); }
+.win98-desktop button:focus-visible { outline: 1px dotted #ff0; outline-offset: -1px; background: linear-gradient(transparent 37px, #000080 37px); }
+
+/* ---------- main window ---------- */
+.win98-window { position: relative; z-index: 3; margin: 10px 14px 10px 108px; padding: 4px; background: var(--w98-face); box-shadow: var(--w98-window); }
+body.win98-maximized .win98-window { margin: 0; min-height: calc(100vh - 40px); }
+body.win98-maximized:not(.win98-minimized) .win98-desktop { visibility: hidden; }
+body.win98-minimized .win98-window { display: none; }
+body > .win98-window > header { position: relative; top: auto; z-index: 10; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0; background: none; backdrop-filter: none; border: 0; box-shadow: none; }
+.win98-titlebar { display: flex; align-items: center; gap: 6px; flex-basis: 100%; height: 28px; padding: 0 3px 0 5px; background: var(--w98-title); color: #fff; font-weight: bold; font-size: 14px; user-select: none; }
+.win98-titlebar::before { content: ''; width: 20px; height: 20px; flex: none; background: var(--w98-icon) center / 20px no-repeat; }
+.win98-title-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.win98-title-controls { display: flex; flex: none; }
+.win98-title-controls button { width: 24px; height: 21px; background-size: auto !important; padding: 0; border: 0; background: var(--w98-face) center no-repeat; box-shadow: var(--w98-raised); cursor: pointer; }
+.win98-title-controls button:active { box-shadow: var(--w98-pressed); background-position: calc(50% + 1px) calc(50% + 1px); }
+.win98-title-controls button:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+[data-win98-action="minimize"] { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='9' shape-rendering='crispEdges'><path d='M1 7h6v2H1z'/></svg>") !important; }
+[data-win98-action="maximize"] { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='9' shape-rendering='crispEdges'><path fill-rule='evenodd' d='M0 0h9v9H0zM1 2h7v6H1z'/></svg>") !important; }
+body.win98-maximized [data-win98-action="maximize"] { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='9' shape-rendering='crispEdges'><path fill-rule='evenodd' d='M2 0h7v6H7V2H2zM0 3h7v6H0zM1 5h5v3H1z'/></svg>") !important; }
+[data-win98-action="close"] { margin-left: 2px; background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='7' shape-rendering='crispEdges'><path d='M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0z'/></svg>") !important; }
+
+/* toolbar row: title + status fields */
+header h1 { flex: 1; margin: 0; padding: 6px 6px 5px; gap: 8px; font-size: 15px; font-weight: bold; line-height: 1; }
+header h1 .logo { width: 28px; height: 28px; padding: 2px; border-radius: 0; background: var(--w98-face); color: var(--w98-navy); box-shadow: var(--w98-raised); }
+header h1 .logo:active { box-shadow: var(--w98-pressed); }
+header h1 .logo .icon { width: 17px; height: 17px; }
+header .stats { margin: 0 4px 0 auto; gap: 3px; padding: 4px 0; }
+header .stats .chip { padding: 3px 9px; border: 0; border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-status); color: #000; font-size: 14px; gap: 4px; }
+header .stats .chip b { color: #000; }
+.dot { border-radius: 0; width: 9px; height: 9px; box-shadow: inset -1px -1px #0004; }
+.dot.live { animation: none; }
+header .controls { display: flex; flex-basis: 100%; align-items: end; gap: 6px; margin: 2px 0 0; padding: 6px 4px 0; border-top: 1px solid var(--w98-shade); box-shadow: inset 0 1px var(--w98-hilite); }
+header .seg { background: none; border: 0; border-radius: 0; padding: 0; gap: 2px; }
+
+/* tab strip */
+header #workspaceNav { display: flex; flex-wrap: wrap; margin-right: auto; align-self: end; gap: 0; padding-left: 2px; }
+header #workspaceNav button { position: relative; margin: 3px 0 0; padding: 6px 16px 5px; background: var(--w98-face); color: #000; font-size: 14px; font-weight: normal; border: 0; border-radius: 3px 3px 0 0; box-shadow: inset 1px 1px var(--w98-hilite), inset -1px 0 var(--w98-dark), inset 2px 2px var(--w98-light), inset -2px 0 var(--w98-shade); }
+header #workspaceNav button[aria-pressed="true"] { z-index: 2; margin: 0 -2px -2px; padding: 8px 18px 8px; background: var(--w98-face); font-weight: normal; }
+header #workspaceNav button:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+
+/* toolbar buttons */
+header .controls > .seg:not(#workspaceNav) { align-self: center; margin-bottom: 5px; }
+header .controls > .seg:not(#workspaceNav) button, header #secretsBtn { min-height: 30px; padding: 4px 11px; background: var(--w98-face); color: #000; border: 0; border-radius: 0; box-shadow: var(--w98-raised); font-size: 14px; gap: 4px; }
+header #secretsBtn { align-self: center; margin-bottom: 5px; }
+header .controls > .seg:not(#workspaceNav) button[aria-pressed="true"] { box-shadow: var(--w98-pressed); background: var(--w98-face) var(--w98-dither); }
+header .controls > .seg:not(#workspaceNav) button:active, header #secretsBtn:active { box-shadow: var(--w98-pressed); }
+header .controls .icon { width: 15px; height: 15px; stroke-width: 2; }
+
+/* tab body: usage + main (office) or the workspace panel */
+.win98-window > .usage, .win98-window > main, .win98-window > #workspacePanel { width: auto; max-width: none; margin: 0; background: var(--w98-face); border: 0; }
+.win98-window > .usage { padding: 20px 18px 8px; box-shadow: inset 1px 1px var(--w98-hilite), inset -1px 0 var(--w98-dark), inset 2px 2px var(--w98-light), inset -2px 0 var(--w98-shade); }
+.win98-window > main { padding: 18px 18px 22px; gap: 20px; box-shadow: inset 1px 0 var(--w98-hilite), inset -1px -1px var(--w98-dark), inset 2px 0 var(--w98-light), inset -2px -2px var(--w98-shade); }
+.win98-window > #workspacePanel, body[data-module="chat"] .win98-window > #workspacePanel { margin: 0; max-width: none; padding: 22px 22px 26px; box-shadow: var(--w98-raised); }
+#workspacePanel > .ws-heading { border-bottom: 1px solid var(--w98-shade); box-shadow: 0 1px var(--w98-hilite); padding-bottom: 14px; margin-bottom: 20px; }
+#workspacePanel > .ws-heading h2 { font-size: 20px; font-weight: bold; color: #000; letter-spacing: 0; }
+
+/* ---------- forms in the workspace modules (not MSN) ---------- */
+#workspacePanel:not(:has(.msn-window)) :is(h3, label, p, input, select, textarea, button) { font-family: var(--w98-font); }
+#workspacePanel:not(:has(.msn-window)) h3 { font-size: 16px; font-weight: bold; }
+#workspacePanel:not(:has(.msn-window)) h4 { font-size: 14px; font-weight: bold; }
+#workspacePanel:not(:has(.msn-window)) :is(p, li, .ws-meta, small) { font-size: 14px; }
+#workspacePanel > .ws-heading p { font-size: 14px; color: #404040; }
+#workspacePanel:not(:has(.msn-window)) label { font-size: 14px; color: #000; }
+#workspacePanel:not(:has(.msn-window)) :is(input, select, textarea) { background: #fff; color: #000; border: 0; border-radius: 0; box-shadow: var(--w98-field); padding: 7px 8px; font-size: 14px; }
+#workspacePanel:not(:has(.msn-window)) input[type="checkbox"] { appearance: auto; accent-color: #000; box-shadow: none; }
+#workspacePanel:not(:has(.msn-window)) :is(.ws-button, .ws-link) { border: 0; border-radius: 0; background: var(--w98-face); color: #000; box-shadow: var(--w98-raised); padding: 6px 16px; min-height: 32px; min-width: 90px; font-size: 14px; text-decoration: none; }
+#workspacePanel:not(:has(.msn-window)) .ws-button.primary { font-weight: normal; outline: 0; box-shadow: inset 0 0 0 1px var(--w98-dark), inset -2px -2px var(--w98-dark), inset 2px 2px var(--w98-hilite), inset -3px -3px var(--w98-shade), inset 3px 3px var(--w98-light); }
+#workspacePanel:not(:has(.msn-window)) :is(.ws-button, .ws-link):active { box-shadow: var(--w98-pressed); padding: 7px 15px 5px 17px; }
+#workspacePanel:not(:has(.msn-window)) :is(button, a, input, select, textarea):focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+#workspacePanel:not(:has(.msn-window)) .ws-card { background: var(--w98-face); border: 1px solid var(--w98-shade); border-radius: 0; box-shadow: inset 1px 1px var(--w98-hilite), 1px 1px var(--w98-hilite); padding: 16px; }
+#workspacePanel:not(:has(.msn-window)) .ws-badge { border-radius: 0; color: #000; border: 0; background: #fff; box-shadow: var(--w98-status); padding: 2px 8px; font-size: 14px; }
+#workspacePanel:not(:has(.msn-window)) .ws-tabs { gap: 0; border-bottom: 0; box-shadow: inset 0 -1px var(--w98-hilite); }
+#workspacePanel:not(:has(.msn-window)) .ws-tabs button { border: 0; border-radius: 3px 3px 0 0; background: var(--w98-face); color: #000; box-shadow: inset 1px 1px var(--w98-hilite), inset -1px 0 var(--w98-dark), inset -2px 0 var(--w98-shade); }
+#workspacePanel:not(:has(.msn-window)) .ws-tabs [aria-pressed="true"] { color: #000; font-weight: normal; background: var(--w98-face); position: relative; z-index: 1; margin-bottom: -1px; padding-bottom: 6px; }
+#workspacePanel:not(:has(.msn-window)) .ws-empty { border: 0; box-shadow: var(--w98-field); background: #fff; border-radius: 0; color: #404040; }
+
+/* ---------- usage meters as group boxes ---------- */
+.usage { gap: 16px; }
+.ucard, .plan { border-radius: 0; background: transparent; border: 1px solid var(--w98-shade); box-shadow: inset 1px 1px var(--w98-hilite), 1px 1px var(--w98-hilite); padding: 14px 16px; gap: 12px; }
+.ucard .avatar { width: 32px; height: 32px; border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-raised); }
+.ucard .avatar .icon { width: 17px; height: 17px; }
+.uhead b, .ucard .uhead b { font-size: 16px; font-weight: bold; color: #000; }
+.uhead small, .uhead .right, .meter .row { color: #404040; font-size: 14px; }
+.meter .row b { font-size: 15px; font-weight: bold; color: #000; }
+.bar, .ucard .bar, .plan-head .pbar { position: relative; height: 20px; border: 0; border-radius: 0; background: #fff; box-shadow: var(--w98-status); overflow: hidden; }
+.bar span, .ucard .bar span { inset: 2px auto 2px 2px; width: calc(var(--w) - 4px); max-width: calc(100% - 4px); border-radius: 0; background: repeating-linear-gradient(90deg, #000080 0 8px, transparent 8px 10px); }
+.plan-head .pbar span { margin: 2px; height: calc(100% - 4px); max-width: calc(100% - 4px); background: repeating-linear-gradient(90deg, #000080 0 8px, transparent 8px 10px); }
+.kvs { gap: 8px; }
+.kv { border-radius: 0; background: #fff; box-shadow: var(--w98-field); padding: 8px 10px; }
+.kv b { font-size: 20px; font-weight: bold; color: #000; }
+.kv span { font-size: 14px; color: #404040; }
+.hint { border: 1px solid #000; border-radius: 0; background: #ffffe1; color: #000; font-size: 14px; }
+
+/* ---------- team: each agent is a small window ---------- */
+.section-head, .plan-head b { font-size: 17px; font-weight: bold; color: #000; gap: 8px; }
+.section-head::after { content: ''; flex: 1; border-top: 1px solid var(--w98-shade); border-bottom: 1px solid var(--w98-hilite); }
+.section-head .icon { width: 18px; height: 18px; color: var(--w98-navy); }
+.section-head small { font-size: 14px; font-weight: normal; color: #404040; }
+.cards { gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.card, .card.working, .card.waiting { border: 0; border-radius: 0; background: var(--w98-face); padding: 3px; box-shadow: var(--w98-window); }
+.card.waiting { outline: 1px dotted #000; outline-offset: -6px; }
+.card .scene { box-shadow: 0 0 0 0 transparent; border: 0; outline: 0; margin: 0; }
+.card .scene::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: var(--w98-field); }
+.pill { border-radius: 0; backdrop-filter: none; font-size: 14px; font-weight: bold; padding: 3px 8px; }
+.pill.vend { padding: 3px 9px 3px 3px; background: var(--w98-title); color: #fff; }
+.card:not(.working) .pill.vend { background: linear-gradient(90deg, #808080, #a0a0a0); color: #fff; }
+.pill.vend .av { width: 18px; height: 18px; border-radius: 0; }
+.pill.vend .av .icon { width: 12px; height: 12px; }
+.pill.state { background: var(--w98-face); color: #000; font-weight: normal; box-shadow: var(--w98-raised); padding: 3px 8px; font-size: 14px; }
+.lang { border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-raised); }
+.card .body { background: var(--w98-face); padding: 12px 8px 8px; gap: 9px; }
+.card .meta { color: #404040; font-size: 14px; }
+.activity { border-radius: 0; background: #fff; color: #000; box-shadow: var(--w98-status); font-size: 14px; font-weight: normal; padding: 2px 8px; }
+.card .ttl { font-size: 15px; font-weight: bold; color: #000; }
+.card .ttl.none { color: #808080; font-weight: normal; text-shadow: 1px 1px #fff; }
+.card .said { border: 0; border-radius: 0; background: #fff; box-shadow: var(--w98-field); color: #000; padding: 7px 9px; font-size: 14px; line-height: 1.45; }
+.act { border-radius: 0; background: #fff; box-shadow: var(--w98-field); padding: 6px 9px; }
+.act code { font-size: 14px; }
+.act .tool { color: #404040; font-size: 14px; }
+.subs { border-top: 1px solid var(--w98-shade); box-shadow: inset 0 1px var(--w98-hilite); }
+.character-chat { background: var(--w98-face); color: #000; border: 0; border-radius: 0; box-shadow: var(--w98-raised); font-size: 14px; min-height: 34px; }
+.character-chat:hover { background: var(--w98-face); border: 0; }
+.character-chat:active { box-shadow: var(--w98-pressed); }
+.character-chat:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+.character-projects { border-top: 1px solid var(--w98-shade); box-shadow: inset 0 1px var(--w98-hilite); font-size: 14px; }
+.character-projects summary { padding: 6px 0; cursor: pointer; }
+.character-projects button { padding: 7px 6px; font-size: 14px; }
+.character-projects summary { color: #000; }
+.character-projects button { border-radius: 0; color: #000; }
+.character-projects button:hover, .character-projects button:focus-visible { color: #fff; background: var(--w98-navy); outline: 0; }
+.character-projects button:hover small, .character-projects button:focus-visible small { color: #dfdfdf; }
+
+/* ---------- plan boards ---------- */
+.plan-head { font-size: 14px; }
+.plan-head small { color: #404040; }
+.plan-head .proj-dot { border-radius: 0; }
+.lane { border: 0; border-radius: 0; background: #fff; box-shadow: var(--w98-field); padding: 10px; }
+.lane h4 { font-size: 15px; color: #000; }
+.task { border-radius: 0; font-size: 14px; padding: 4px 6px; line-height: 1.4; }
+.task.doing { background: var(--w98-navy); color: #fff; }
+.task.doing .icon, .task.doing .n { color: #fff; }
+.task.done { color: #808080; }
+.empty { border: 0; border-radius: 0; background: #fff; box-shadow: var(--w98-field); }
+
+/* ---------- other portal surfaces ---------- */
+.portal-layout { border: 0; box-shadow: var(--w98-field); background: #fff; border-radius: 0; }
+.portal-sidebar { background: #fff; border-right: 1px solid var(--w98-shade); }
+.portal-layout > .portal-reader { background: #fff; }
+.portal-note { border-radius: 0; color: #000; font-size: 14px; padding: 8px 10px; }
+.portal-reader .portal-markdown { font-size: 15px; line-height: 1.6; max-width: 78ch; }
+.portal-note:hover, .portal-note[aria-current="true"] { background: var(--w98-navy); color: #fff; }
+.portal-note[aria-current="true"] small, .portal-note:hover small { color: #dfdfdf; }
+.portal-reader .portal-markdown a, .portal-reader .portal-wiki { color: #0000ff; }
+.portal-reader .portal-markdown pre { background: #fff; border-radius: 0; border: 0; box-shadow: var(--w98-field); }
+.portal-import-row { border: 0; border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-raised); }
+.portal-import-bar { background: var(--w98-face); border: 0; box-shadow: var(--w98-window); border-radius: 0; }
+
+/* ---------- knowledge graph ---------- */
+.pixel-graph { border: 0; padding: 2px; box-shadow: var(--w98-field); }
+.graph-count, .graph-hint, .pixel-legend { font-size: 14px; }
+.graph-count b, .pixel-legend b { color: #000; }
+.graph-detail { background: var(--w98-face); border: 1px solid var(--w98-shade); box-shadow: inset 1px 1px var(--w98-hilite), 1px 1px var(--w98-hilite); }
+.graph-detail-lead { font-size: 14px; color: #404040; }
+.graph-links { background: #fff; box-shadow: var(--w98-field); padding: 3px; }
+.graph-link { font-size: 14px; color: #000; }
+.graph-link:hover, .graph-link:focus-visible { background: var(--w98-navy); color: #fff; outline: 0; }
+.graph-link:hover small, .graph-link:focus-visible small { color: #dfdfdf; }
+.graph-preview { background: #fff; box-shadow: var(--w98-field); padding: 10px 12px; font-size: 14px; line-height: 1.55; }
+.graph-tooltip { font-size: 14px; }
+
+/* ---------- dialogs, tooltips and notifications ---------- */
+#secrets { border: 0; border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-window), 1px 1px 0 #000; padding: 3px 3px 8px; top: 100px; }
+#secrets h3 { margin: 0 0 6px; padding: 5px 7px; background: var(--w98-title); color: #fff; font-size: 14px; font-weight: bold; }
+.ach { border-top: 1px solid var(--w98-shade); padding: 7px 8px; font-size: 14px; }
+.ach .ico { border-radius: 0; background: var(--w98-face); box-shadow: var(--w98-raised); }
+.ach.got .ico { background: #ffffe1; }
+.ach small { color: #404040; font-size: 14px; }
+.toast { border: 0; border-radius: 0; background: var(--w98-face); color: #000; box-shadow: var(--w98-window), 2px 2px 0 #0008; padding: 10px 18px 10px 10px; bottom: 50px; }
+.toast .tro { border-radius: 0; background: #ffffe1; box-shadow: var(--w98-field); }
+.toast small { color: #404040; letter-spacing: 0; }
+.toast b { font-size: 15px; font-weight: bold; }
+.toast p { color: #000; font-size: 14px; }
+.ws-alert { color: #000; border: 1px solid #000; border-radius: 0; background: #ffffe1; box-shadow: 2px 2px 0 #0006; font-size: 14px; padding: 10px 14px; bottom: 50px; }
+
+/* ---------- taskbar ---------- */
+.win98-taskbar { position: fixed; z-index: 70; bottom: 0; left: 0; right: 0; height: 40px; display: flex; align-items: center; gap: 4px; padding: 3px 4px 2px; background: var(--w98-face); border: 0; box-shadow: inset 0 1px var(--w98-light), inset 0 2px var(--w98-hilite); color: #000; font-size: 14px; }
+.win98-taskbar > button, #win98Start { display: flex; align-items: center; gap: 6px; height: 32px; min-width: 0; padding: 2px 10px; background: var(--w98-face); color: #000; border: 0; border-radius: 0; box-shadow: var(--w98-raised); font-size: 14px; cursor: pointer; white-space: nowrap; }
+#win98Start { font-weight: bold; padding: 2px 9px 2px 6px; }
+#win98Start::before { content: ''; width: 20px; height: 20px; background: var(--w98-ico-start) center / 20px no-repeat; }
+#win98Start[aria-expanded="true"], .win98-taskbar > button:active { box-shadow: var(--w98-pressed); }
+#win98Start:focus-visible, .win98-taskbar > button:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+#win98CurrentTask { flex: 0 1 220px; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; font-weight: bold; box-shadow: var(--w98-pressed); background: var(--w98-face) var(--w98-dither); }
+#win98CurrentTask::before { content: ''; width: 20px; height: 20px; flex: none; background: var(--w98-icon) center / 20px no-repeat; }
+body.win98-minimized #win98CurrentTask { box-shadow: var(--w98-raised); background: var(--w98-face); font-weight: normal; }
+.win98-task-divider { width: 2px; height: 28px; margin: 0 2px; border: 0; box-shadow: inset 1px 0 var(--w98-shade), inset -1px 0 var(--w98-hilite); }
+.win98-tray { display: flex; gap: 6px; align-items: center; margin-left: auto; padding: 0 12px 0 8px; height: 32px; border: 0; font-size: 14px; box-shadow: var(--w98-status); white-space: nowrap; }
+.win98-tray-icon { width: 20px; height: 20px; background: var(--w98-ico-tray) center / 20px no-repeat; }
+
+/* Start menu */
+.win98-start-menu { position: absolute; z-index: 80; left: 3px; bottom: 37px; display: grid; grid-template-columns: 28px 240px; background: var(--w98-face); border: 0; box-shadow: var(--w98-window); padding: 3px; }
+.win98-start-menu[hidden] { display: none; }
+.win98-start-brand { writing-mode: vertical-rl; transform: rotate(180deg); background: linear-gradient(#000080, #1084d0); color: #c0c0c0; padding: 6px 0 6px; font-size: 24px; font-weight: bold; line-height: 28px; text-align: left; }
+.win98-start-brand b { color: #fff; font-weight: 900; }
+.win98-start-menu button { display: flex; align-items: center; gap: 12px; width: 100%; height: 44px; text-align: left; padding: 0 10px 0 6px; border: 0; background: var(--w98-face); color: #000; cursor: pointer; font-size: 14px; }
+.win98-start-menu button::before { content: ''; width: 32px; height: 32px; flex: none; background: var(--w98-icon) center / 32px no-repeat; }
+.win98-start-menu button:hover, .win98-start-menu button:focus-visible { background: var(--w98-navy); color: #fff; outline: 0; }
+.win98-start-menu hr { margin: 2px 2px; border: 0; height: 2px; box-shadow: inset 0 1px var(--w98-shade), inset 0 -1px var(--w98-hilite); }
+
+/* ---------- scrollbars (page and Windows 98 surfaces only) ---------- */
+html::-webkit-scrollbar, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar { width: 16px; height: 16px; }
+html::-webkit-scrollbar-track, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-track { background: var(--w98-face) var(--w98-dither); }
+html::-webkit-scrollbar-thumb, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-thumb { background: var(--w98-face); box-shadow: var(--w98-raised); }
+html::-webkit-scrollbar-corner, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-corner { background: var(--w98-face); }
+html::-webkit-scrollbar-button:single-button, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:single-button { display: block; width: 16px; height: 16px; background: var(--w98-face) center no-repeat; box-shadow: var(--w98-raised); }
+html::-webkit-scrollbar-button:single-button:vertical:decrement, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'><path d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/></svg>"); }
+html::-webkit-scrollbar-button:single-button:vertical:increment, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'><path d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z'/></svg>"); }
+html::-webkit-scrollbar-button:single-button:horizontal:decrement, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:single-button:horizontal:decrement { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'><path d='M3 0h1v7H3V6H2V5H1V4H0V3h1V2h1V1h1z'/></svg>"); }
+html::-webkit-scrollbar-button:single-button:horizontal:increment, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:single-button:horizontal:increment { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'><path d='M0 0h1v1h1v1h1v1h1v1H3v1H2v1H1v1H0z'/></svg>"); }
+html::-webkit-scrollbar-button:active, .win98-window :not(.msn-window, .msn-window *)::-webkit-scrollbar-button:active { box-shadow: inset 0 0 0 1px var(--w98-shade); }
+::selection { background: var(--w98-navy); color: #fff; }
+
+/* ---------- Messenger integration (its skin is untouched) ---------- */
+.msn-taskbar-contact { bottom: 46px; }
+body .msn-window.maximized { bottom: 46px; }
+body .msn-window.maximized .chat-shell { height: calc(100vh - 98px); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) { header .stats { flex-basis: 100%; justify-content: flex-start; padding: 0 4px 4px; } header .controls { flex-wrap: wrap; } }
+@media (max-width: 800px) {
+  .win98-desktop { display: none; }
+  .win98-window { margin: 0; min-height: calc(100vh - 40px); }
+  .win98-title-controls [data-win98-action="maximize"] { display: none; }
+  header #workspaceNav button { padding: 6px 10px 5px; }
+  header #workspaceNav button[aria-pressed="true"] { padding: 8px 12px 8px; }
+  .win98-window > .usage, .win98-window > main, .win98-window > #workspacePanel, body[data-module="chat"] .win98-window > #workspacePanel { padding-left: 8px; padding-right: 8px; }
+}
+@media (max-width: 460px) { .win98-tray-icon { display: none; } #win98CurrentTask { flex-basis: 110px; } }
+.character-projects summary, .character-projects small, .card .meta, .uhead small { font-size: 14px; }
+.graph-preview :is(a, .portal-wiki) { color: #0000ff; text-decoration: underline; }

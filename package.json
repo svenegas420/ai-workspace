@@ -1,0 +1,13 @@
+{
+  "name": "ai-workspace-office",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local agent office, project knowledge and integrated chat",
+  "scripts": {
+    "start": "node office/server.js",
+    "test": "node --test office/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1"
+  }
+}
